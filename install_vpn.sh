@@ -10,7 +10,7 @@ JUNIPER_DIR=~/.juniper_networks/network_connect
 
 usage() {
     echo "\n\n"
-    echo 'Usage: ./install_vpn.sh -n <connection name> -u <vpn username> -a <nc_linux_app url> -r <vpn realm (optional)> -h <host ip>  -j <jnc url (optional)>'
+    echo 'Usage: ./install_vpn.sh -n <connection name> -u <vpn username> -a <nc_linux_app git (optional)> -r <vpn realm (optional)> -h <host ip (optional)>  -j <jnc url (optional)>'
     echo "\n\n"
     exit 0
 }
@@ -27,18 +27,26 @@ install_depedencies() {
 }
 
 download_ncLinuxApp() {
-    echo $SPLITTER 'geting the jar file' $SPLITTER
-    echo $NCLINUXAPP_URL
-    wget $NCLINUXAPP_URL
+    git clone $NCLINUXAPP_GIT
 }
 
-extract_ncLinuxApp() {
+init_juniper_dir(){
     echo $SPLITTER 'extracting the jar file'  $SPLITTER
     rm -rf $JUNIPER_DIR
     mkdir -p $JUNIPER_DIR
-    unzip ncLinuxApp.jar -d $JUNIPER_DIR
+}
+
+extract_juniper(){
+    mv ncLinuxApp/* $JUNIPER_DIR
+    rm -rf ncLinuxApp
     chmod 6711 $JUNIPER_DIR/ncsvc
     chmod 744 $JUNIPER_DIR/ncdiag
+}
+
+get_ncLinuxApp() {
+    init_juniper_dir
+    download_ncLinuxApp
+    extract_juniper
 }
 
 create_certificate() {
@@ -63,7 +71,7 @@ make_jnc_conf() {
     echo ''
     mkdir -p ~/.juniper_networks/network_connect/config
     echo "host=$HOST_IP
-    user=$USER
+    user=$VPN_USERNAME
     realm=$REALM
     cafile=/$HOME/.juniper_networks/network_connect/$NAME.cert
     certfile=$HOME/.juniper_networks/network_connect/$NAME.der" >> ~/.juniper_networks/network_connect/config/$NAME.conf    
@@ -80,8 +88,7 @@ echo_finished() {
 main() {
     rm_workdir
     install_depedencies
-    download_ncLinuxApp
-    extract_ncLinuxApp
+    get_ncLinuxApp
     create_certificate
     install_jnc
     make_jnc_conf
@@ -106,15 +113,15 @@ while getopts "n:u:r:a:h:j:" opt; do
         u )  USER=$OPTARG ;;
         r )  REALM=$OPTARG ;;
         h )  HOST_IP=$OPTARG;;
-        a )  NCLINUXAPP_URL=$OPTARG ;;
+        a )  NCLINUXAPP_GIT=$OPTARG ;;
         j )  JNC_URL=$OPTARG ;;
        \?)  usage ;;
    esac
 done
 
-if !( [ $NAME ] && [ $USER ] && [ $NCLINUXAPP_URL ] && [$HOST_IP] ) ; then
-    echo '\nMissing name or user or ncLinuxApp url or host param.'
-    echo "Name: $NAME\nUser: $USER\nNcLinuxApp url: $NCLINUXAPP_URL\n$HOST_IP"
+if !( [ $NAME ] && [ $VPN_USERNAME ] && [$HOST_IP] ) ; then
+    echo '\nMissing name or user or host params.'
+    echo "Name: $NAME\nUser: $VPN_USERNAME\nHost: $HOST_IP"
     usage
     exit 0
 fi

@@ -1,5 +1,4 @@
-Usage: ./install_vpn.sh -n <connection name> -u <vpn username> -a <nc_linux_app url> -r <vpn realm (optional)> -h <host ip>  -j <jnc url (optional)>
+Usage: ./install_vpn.sh -n <connection name> -u <vpn username> -a <nc_linux_app git (optional)> -r <vpn realm (optional)> -h <host ip (optional)>  -j <jnc url (optional)>
 
 Notes:
-1. connection name, vpn username, and nc_linux_app url, ip host is must
-2. prepare downloadable url for nc_linux_app before run this script (use http because this script use wget).
+- connection name and vpn username params is mandatory
